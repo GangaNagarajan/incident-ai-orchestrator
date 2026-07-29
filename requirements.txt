@@ -7,3 +7,6 @@ pytest
 sqlalchemy
 psycopg2-binary
 alembic
+autogen-agentchat==0.7.5
+autogen-core==0.7.5
+pydantic
