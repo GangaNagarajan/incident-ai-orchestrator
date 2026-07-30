@@ -14,32 +14,41 @@ class MonitoringAgent(BaseAgent):
         self.mcp_client = MCPClient()
 
 
-
     def process(
-        self,
-        context
-    ):
+    self,
+    context
+):
 
 
         print(
-            f"\n[{self.name}] Checking application health..."
+            f"\n[{self.name}] Collecting application evidence..."
         )
 
 
-        # Pydantic IncidentContext
-        application_name = context.application
+        application = context.application
 
 
 
-        health_result = (
-            self.mcp_client.call_tool(
-                "get_application_health",
-                application_name=application_name
-            )
+        health = self.mcp_client.call_tool(
+            "get_application_health",
+            application_name=application
         )
 
 
-        # Ensure dictionary exists
+
+        logs = self.mcp_client.call_tool(
+            "get_application_logs",
+            application_name=application
+        )
+
+
+
+        deployments = self.mcp_client.call_tool(
+            "get_recent_deployments",
+            application_name=application
+        )
+
+
 
         if context.agent_outputs is None:
 
@@ -47,14 +56,26 @@ class MonitoringAgent(BaseAgent):
 
 
 
-        context.agent_outputs["monitoring"] = (
-            health_result
-        )
+        context.agent_outputs["monitoring"] = {
+
+
+            "health":
+                health,
+
+
+            "logs":
+                logs,
+
+
+            "deployments":
+                deployments
+
+        }
 
 
 
         print(
-            f"[{self.name}] Health check completed"
+            f"[{self.name}] Evidence collection completed"
         )
 
 

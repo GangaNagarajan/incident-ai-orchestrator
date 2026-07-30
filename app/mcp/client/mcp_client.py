@@ -9,9 +9,7 @@ class MCPClient:
 
     def __init__(self):
 
-        self.monitoring_server = (
-            MonitoringMCPServer()
-        )
+        self.monitoring_server = MonitoringMCPServer()
 
 
 
@@ -24,10 +22,29 @@ class MCPClient:
 
         if tool_name == "get_application_health":
 
-
             return (
                 self.monitoring_server
                 .get_application_health(
+                    **kwargs
+                )
+            )
+
+
+        elif tool_name == "get_application_logs":
+
+            return (
+                self.monitoring_server
+                .get_application_logs(
+                    **kwargs
+                )
+            )
+
+
+        elif tool_name == "get_recent_deployments":
+
+            return (
+                self.monitoring_server
+                .get_recent_deployments(
                     **kwargs
                 )
             )
