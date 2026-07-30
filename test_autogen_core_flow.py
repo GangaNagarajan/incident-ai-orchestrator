@@ -21,6 +21,9 @@ from app.autogen_core.agents.orchestrator_agent import OrchestratorRoutedAgent
 from app.autogen_core.agents.recommendation_agent import RecommendationRoutedAgent
 from app.autogen_core.agents.approval_agent import ApprovalRoutedAgent
 from app.autogen_core.agents.incident_update_agent import IncidentUpdateRoutedAgent
+from app.autogen_core.agents.master_orchestrator_agent import (
+    MasterOrchestratorRoutedAgent
+)
 
 
 
@@ -99,6 +102,12 @@ async def main():
         lambda: IncidentUpdateRoutedAgent()
     )
 
+    await MasterOrchestratorRoutedAgent.register(
+    runtime,
+    "master_orchestrator",
+    lambda: MasterOrchestratorRoutedAgent()
+)
+
 
 
     # =====================================================
@@ -161,7 +170,12 @@ async def main():
         )
     )
 
-
+    await runtime.add_subscription(
+    TypeSubscription(
+        topic_type="master_orchestrator",
+        agent_type="master_orchestrator"
+    )
+)
 
     # Start Runtime
 

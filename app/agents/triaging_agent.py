@@ -1,24 +1,27 @@
 from app.agents.base_agent import BaseAgent
-from app.schemas.agent_context_schema import IncidentContext
 
 
-class TriagingAgent:
+class TriagingAgent(BaseAgent):
 
 
     def __init__(self):
 
-        self.name = "Triaging Agent"
+        super().__init__(
+            "Triaging Agent"
+        )
 
 
+    def process(
+        self,
+        context: dict
+    ) -> dict:
 
-    def process(self, context):
 
         print(
             "\n[Triaging Agent] Analysing incident..."
         )
 
 
-        # AutoGen sends dictionary context
         description = context.get(
             "description",
             ""
@@ -26,7 +29,7 @@ class TriagingAgent:
 
 
 
-        # Incident classification rules
+        # Incident classification
 
         if (
             "database" in description
@@ -100,17 +103,10 @@ class TriagingAgent:
 
 
 
-        # Maintain agent execution history
-
-        if "next_agents" not in context:
-
-            context["next_agents"] = []
-
-
+        # Master Orchestrator will decide next agents
 
         context["next_agents"] = [
-            "Monitoring Agent",
-            "Knowledge Agent"
+            "Master Orchestrator"
         ]
 
 
@@ -124,14 +120,16 @@ class TriagingAgent:
         context["agent_outputs"]["triaging"] = {
 
 
-            "category": category,
+            "category":
+                category,
 
 
-            "priority": priority,
+            "priority":
+                priority,
 
 
             "decision":
-            "Trigger Monitoring and Knowledge Agents"
+                "Send incident to Master Orchestrator for dynamic routing"
 
         }
 

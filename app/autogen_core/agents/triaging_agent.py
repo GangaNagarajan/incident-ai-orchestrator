@@ -5,7 +5,9 @@ from autogen_core import (
     AgentId
 )
 
+
 from app.autogen_core.messages import IncidentMessage
+
 
 from app.agents.triaging_agent import TriagingAgent
 
@@ -20,6 +22,7 @@ class TriagingRoutedAgent(RoutedAgent):
             "Triaging Routed Agent"
         )
 
+
         self.business_agent = TriagingAgent()
 
 
@@ -32,9 +35,11 @@ class TriagingRoutedAgent(RoutedAgent):
     ) -> None:
 
 
+
         print(
             "\n========== Triaging Routed Agent =========="
         )
+
 
 
         updated_context = self.business_agent.process(
@@ -47,12 +52,10 @@ class TriagingRoutedAgent(RoutedAgent):
 
 
         print(
-            "Routing to Monitoring and Knowledge Agents..."
+            "Sending incident to Master Orchestrator..."
         )
 
 
-
-        # Send to Monitoring Agent
 
         await self.send_message(
 
@@ -60,25 +63,9 @@ class TriagingRoutedAgent(RoutedAgent):
                 context=message.context
             ),
 
-            AgentId(
-                "monitoring",
-                "default"
-            )
-
-        )
-
-
-
-        # Send to Knowledge Agent
-
-        await self.send_message(
-
-            IncidentMessage(
-                context=message.context
-            ),
 
             AgentId(
-                "knowledge",
+                "master_orchestrator",
                 "default"
             )
 
