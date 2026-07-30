@@ -7,22 +7,22 @@ from autogen_core import (
 
 from app.autogen_core.messages import IncidentMessage
 
-from app.agents.knowledge_agent import KnowledgeAgent
+from app.agents.recommendation_agent import RecommendationAgent
 
 from app.schemas.agent_context_schema import IncidentContext
 
 
 
-class KnowledgeRoutedAgent(RoutedAgent):
+class RecommendationRoutedAgent(RoutedAgent):
 
 
     def __init__(self):
 
         super().__init__(
-            "Knowledge Routed Agent"
+            "Recommendation Routed Agent"
         )
 
-        self.business_agent = KnowledgeAgent()
+        self.business_agent = RecommendationAgent()
 
 
 
@@ -35,9 +35,12 @@ class KnowledgeRoutedAgent(RoutedAgent):
 
 
         print(
-            "\n========== Knowledge Routed Agent ==========\n"
+            "\n========== Recommendation Routed Agent ==========\n"
         )
 
+
+        # Convert dict from AutoGen message
+        # back to IncidentContext object
 
         context = IncidentContext(
             **message.context
@@ -49,19 +52,20 @@ class KnowledgeRoutedAgent(RoutedAgent):
         )
 
 
+        # Convert Pydantic object back to dict
+        # for next AutoGen message
+
         message.context = updated_context.model_dump()
 
 
         print(
-            "[Knowledge Routed Agent] Completed"
+            "[Recommendation Routed Agent] Completed"
         )
 
-
-        # Send result back to orchestrator
 
         await self.publish_message(
             IncidentMessage(
                 context=message.context
             ),
-            topic_id=DefaultTopicId("orchestrator")
+            topic_id=DefaultTopicId("approval")
         )

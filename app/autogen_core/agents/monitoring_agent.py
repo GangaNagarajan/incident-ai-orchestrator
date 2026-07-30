@@ -1,17 +1,16 @@
 from autogen_core import (
     RoutedAgent,
     MessageContext,
-    message_handler
+    message_handler,
+    DefaultTopicId
 )
-
 
 from app.autogen_core.messages import IncidentMessage
 
 from app.agents.monitoring_agent import MonitoringAgent
 
-from app.autogen_core.state import incident_state
+from app.schemas.agent_context_schema import IncidentContext
 
-from autogen_core import AgentId
 
 
 class MonitoringRoutedAgent(RoutedAgent):
@@ -36,39 +35,33 @@ class MonitoringRoutedAgent(RoutedAgent):
 
 
         print(
-            "\n========== Monitoring Routed Agent =========="
+            "\n========== Monitoring Routed Agent ==========\n"
+        )
+
+
+        context = IncidentContext(
+            **message.context
         )
 
 
         updated_context = self.business_agent.process(
-            message.context
+            context
         )
 
 
-        incident_state.update_context(
-            updated_context
-        )
-
-
-        incident_state.mark_completed(
-            "monitoring"
-        )
-
-        await self.send_message(
-
-    IncidentMessage(
-        context=updated_context
-    ),
-
-    AgentId(
-        "orchestrator",
-        "default"
-    )
-
-)
+        message.context = updated_context.model_dump()
 
 
         print(
             "[Monitoring Routed Agent] Completed"
         )
 
+
+        # Send result back to orchestrator
+
+        await self.publish_message(
+            IncidentMessage(
+                context=message.context
+            ),
+            topic_id=DefaultTopicId("orchestrator")
+        )

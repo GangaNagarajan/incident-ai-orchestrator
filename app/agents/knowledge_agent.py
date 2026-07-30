@@ -1,75 +1,57 @@
 from app.agents.base_agent import BaseAgent
-from app.schemas.incident_schema import IncidentCreate
+from app.schemas.agent_context_schema import IncidentContext
 
 
-class KnowledgeAgent:
-
+class KnowledgeAgent(BaseAgent):
 
     def __init__(self):
 
-        self.name = "Knowledge Agent"
-
-
-
-    def process(self, context):
-
-
-        print(
-            "\n[Knowledge Agent] Searching knowledge base..."
+        super().__init__(
+            "Knowledge Agent"
         )
 
 
-        description = context["description"].lower()
-
-
-
-        # Simulated knowledge retrieval
-
-        if "database" in description or "connection" in description:
-
-            knowledge_result = {
-
-                "similar_incident": "INC8899",
-
-                "recommended_resolution":
-                    "Increase database connection pool size",
-
-                "confidence": 0.93
-
-            }
-
-
-        else:
-
-            knowledge_result = {
-
-                "similar_incident": None,
-
-                "recommended_resolution":
-                    "No matching knowledge article found",
-
-                "confidence": 0.50
-
-            }
-
+    def process(
+        self,
+        context: IncidentContext
+    ) -> IncidentContext:
 
 
         print(
-            "[Knowledge Agent] Knowledge retrieval completed"
+            f"\n[{self.name}] Searching knowledge base..."
         )
 
 
+        knowledge_result = {
 
-        # Ensure output container exists
+            "similar_incidents": [
 
-        if "agent_outputs" not in context:
+                "INC9821 - Database timeout issue",
+                "INC9732 - Payment API degradation"
 
-            context["agent_outputs"] = {}
+            ],
+
+            "matched_solution":
+
+                "Increase DB connection pool and review timeout configuration",
+
+            "knowledge_source":
+
+                "Enterprise Knowledge Base"
+
+        }
 
 
+        if context.agent_outputs is None:
+            context.agent_outputs = {}
 
-        context["agent_outputs"]["knowledge"] = knowledge_result
 
+        context.agent_outputs["knowledge"] = knowledge_result
+
+
+        print(
+            f"[{self.name}] Knowledge retrieval completed"
+        )
 
 
         return context

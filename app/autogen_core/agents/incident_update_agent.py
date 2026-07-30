@@ -1,28 +1,27 @@
 from autogen_core import (
     RoutedAgent,
     MessageContext,
-    message_handler,
-    DefaultTopicId
+    message_handler
 )
 
 from app.autogen_core.messages import IncidentMessage
 
-from app.agents.knowledge_agent import KnowledgeAgent
+from app.agents.incident_update_agent import IncidentUpdateAgent
 
 from app.schemas.agent_context_schema import IncidentContext
 
 
 
-class KnowledgeRoutedAgent(RoutedAgent):
+class IncidentUpdateRoutedAgent(RoutedAgent):
 
 
     def __init__(self):
 
         super().__init__(
-            "Knowledge Routed Agent"
+            "Incident Update Routed Agent"
         )
 
-        self.business_agent = KnowledgeAgent()
+        self.business_agent = IncidentUpdateAgent()
 
 
 
@@ -35,7 +34,7 @@ class KnowledgeRoutedAgent(RoutedAgent):
 
 
         print(
-            "\n========== Knowledge Routed Agent ==========\n"
+            "\n========== Incident Update Routed Agent ==========\n"
         )
 
 
@@ -53,15 +52,15 @@ class KnowledgeRoutedAgent(RoutedAgent):
 
 
         print(
-            "[Knowledge Routed Agent] Completed"
+            "[Incident Update Routed Agent] Completed"
         )
 
 
-        # Send result back to orchestrator
+        print(
+            "\n========== INCIDENT FINAL RESULT =========="
+        )
 
-        await self.publish_message(
-            IncidentMessage(
-                context=message.context
-            ),
-            topic_id=DefaultTopicId("orchestrator")
+
+        print(
+            message.context
         )

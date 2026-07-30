@@ -1,12 +1,15 @@
 from autogen_core import (
     RoutedAgent,
     MessageContext,
-    message_handler
+    message_handler,
+    DefaultTopicId
 )
 
 from app.autogen_core.messages import IncidentMessage
 
 from app.agents.rca_agent import RCAAgent
+
+from app.schemas.agent_context_schema import IncidentContext
 
 
 
@@ -18,7 +21,6 @@ class RCARoutedAgent(RoutedAgent):
         super().__init__(
             "RCA Routed Agent"
         )
-
 
         self.business_agent = RCAAgent()
 
@@ -33,18 +35,35 @@ class RCARoutedAgent(RoutedAgent):
 
 
         print(
-            "\n========== RCA Routed Agent =========="
+            "\n========== RCA Routed Agent ==========\n"
+        )
+
+
+        # Convert dictionary -> IncidentContext
+
+        context = IncidentContext(
+            **message.context
         )
 
 
         updated_context = self.business_agent.process(
-            message.context
+            context
         )
 
 
-        message.context = updated_context
+        # Convert IncidentContext -> dictionary
+
+        message.context = updated_context.model_dump()
 
 
         print(
             "[RCA Routed Agent] Completed"
+        )
+
+
+        await self.publish_message(
+            IncidentMessage(
+                context=message.context
+            ),
+            topic_id=DefaultTopicId("recommendation")
         )

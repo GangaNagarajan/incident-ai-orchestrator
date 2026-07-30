@@ -5,13 +5,17 @@ from app.schemas.agent_context_schema import IncidentContext
 class RecommendationAgent(BaseAgent):
 
     def __init__(self):
-        super().__init__("Recommendation Agent")
+
+        super().__init__(
+            "Recommendation Agent"
+        )
 
 
     def process(
         self,
         context: IncidentContext
-    ):
+    ) -> IncidentContext:
+
 
         print(
             f"\n[{self.name}] Generating resolution recommendations..."
@@ -38,7 +42,11 @@ class RecommendationAgent(BaseAgent):
 
 
 
-        if "Database connection pool exhausted" in root_cause:
+        if (
+            "Database connection pool exhausted"
+            in root_cause
+        ):
+
 
             recommendations = [
 
@@ -48,15 +56,20 @@ class RecommendationAgent(BaseAgent):
 
                 "Monitor database connection utilization",
 
-                "Review database timeout configurations"
+                "Review database timeout configuration"
 
             ]
+
 
             automation_possible = True
 
 
 
-        elif "Application service unavailable" in root_cause:
+        elif (
+            "Application service unavailable"
+            in root_cause
+        ):
+
 
             recommendations = [
 
@@ -68,11 +81,13 @@ class RecommendationAgent(BaseAgent):
 
             ]
 
+
             automation_possible = True
 
 
 
         else:
+
 
             recommendations = [
 
@@ -90,18 +105,22 @@ class RecommendationAgent(BaseAgent):
 
 
             "root_cause_considered":
+
                 root_cause,
 
 
             "recommended_actions":
+
                 recommendations,
 
 
             "automation_possible":
+
                 automation_possible,
 
 
             "requires_approval":
+
                 requires_approval
 
         }

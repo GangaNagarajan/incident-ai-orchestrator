@@ -6,22 +6,19 @@ class IncidentUpdateAgent(BaseAgent):
 
     def __init__(self):
 
-        super().__init__("Incident Update Agent")
+        super().__init__(
+            "Incident Update Agent"
+        )
 
 
     def process(
         self,
         context: IncidentContext
-    ):
+    ) -> IncidentContext:
+
 
         print(
             f"\n[{self.name}] Updating incident..."
-        )
-
-
-        approval = context.agent_outputs.get(
-            "approval",
-            {}
         )
 
 
@@ -37,52 +34,44 @@ class IncidentUpdateAgent(BaseAgent):
         )
 
 
-        if approval.get("approval_status") == "PENDING":
-
-            update_status = "WAITING_FOR_APPROVAL"
-
-        else:
-
-            update_status = "IN_PROGRESS"
-
-
-
-        incident_update = {
+        update_payload = {
 
 
             "incident_id":
+
                 context.incident_id,
 
 
             "status":
-                update_status,
+
+                "IN_PROGRESS",
 
 
-            "root_cause":
-                rca.get(
-                    "root_cause"
-                ),
+            "summary":
 
+                f"""
+Root Cause:
+{rca.get('root_cause')}
 
-            "resolution_plan":
-                recommendation.get(
-                    "recommended_actions"
-                ),
+Recommended Actions:
+{recommendation.get('recommended_actions')}
+""",
 
 
             "updated_by":
+
                 "Incident AI Orchestrator"
 
         }
 
 
-        context.agent_outputs["incident_update"] = (
-            incident_update
-        )
+
+        context.agent_outputs["incident_update"] = update_payload
+
 
 
         print(
-            f"[{self.name}] Incident update prepared"
+            f"[{self.name}] Incident updated successfully"
         )
 
 

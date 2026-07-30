@@ -2,87 +2,95 @@ from app.agents.base_agent import BaseAgent
 from app.schemas.agent_context_schema import IncidentContext
 
 
-class RCAAgent:
-
+class RCAAgent(BaseAgent):
 
     def __init__(self):
 
-        self.name = "RCA Agent"
+        super().__init__(
+            "RCA Agent"
+        )
 
 
+    def process(
+        self,
+        context: IncidentContext
+    ) -> IncidentContext:
 
-    def process(self, context):
 
         print(
-            "\n[RCA Agent] Analysing root cause..."
-        )
-
-
-        monitoring = context["agent_outputs"].get(
-            "monitoring",
-            {}
-        )
-
-
-        knowledge = context["agent_outputs"].get(
-            "knowledge",
-            {}
+            f"\n[{self.name}] Analysing root cause..."
         )
 
 
         root_cause = "Unknown"
 
 
+        confidence = 0.0
+
+
+
+        description = context.description.lower()
+
 
         if (
-            monitoring.get("database_status") == "DOWN"
-            and
-            knowledge.get("similar_incident")
+            "database" in description
+            or
+            "connection timeout" in description
         ):
 
             root_cause = (
                 "Database connection pool exhausted"
             )
 
+            confidence = 0.95
+
+
+
+        elif "503" in description:
+
+            root_cause = (
+                "Application service unavailable"
+            )
+
+            confidence = 0.90
+
 
 
         rca_result = {
 
-            "root_cause": root_cause,
 
-            "confidence": 0.95,
+            "root_cause":
+                root_cause,
 
-            "evidence": [
 
-                "Database reported DOWN",
+            "confidence":
+                confidence,
 
-                f"Matched historical incident {knowledge.get('similar_incident')}"
 
-            ]
+            "analysis":
+
+                "Derived from incident description and historical patterns"
 
         }
 
 
 
+        if context.agent_outputs is None:
+            context.agent_outputs = {}
+
+
+
+        context.agent_outputs["rca"] = rca_result
+
+
+
         print(
-            f"[RCA Agent] Root Cause : {root_cause}"
+            f"[{self.name}] Root Cause : {root_cause}"
         )
 
-
         print(
-            "[RCA Agent] Confidence : 0.95"
+            f"[{self.name}] Confidence : {confidence}"
         )
-
-
-
-        if "agent_outputs" not in context:
-
-            context["agent_outputs"] = {}
-
-
-
-        context["agent_outputs"]["rca"] = rca_result
-
 
 
         return context

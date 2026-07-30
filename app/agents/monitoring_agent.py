@@ -2,42 +2,66 @@ from app.agents.base_agent import BaseAgent
 from app.schemas.agent_context_schema import IncidentContext
 
 
-class MonitoringAgent:
+class MonitoringAgent(BaseAgent):
 
     def __init__(self):
 
-        self.name = "Monitoring Agent"
+        super().__init__(
+            "Monitoring Agent"
+        )
 
 
-    def process(self, context):
+    def process(
+        self,
+        context: IncidentContext
+    ) -> IncidentContext:
+
 
         print(
-            "\n[Monitoring Agent] Checking application health..."
+            f"\n[{self.name}] Checking application health..."
         )
 
 
         monitoring_result = {
 
-            "health_status": "FAILED",
+            "application":
+                context.application,
 
-            "database_status": "DOWN",
+            "health_status":
+                "DEGRADED",
 
-            "error": "Database connection timeout"
+            "services_checked":
+                [
+                    "Payment API",
+                    "Database"
+                ],
+
+            "observations":
+                [
+                    "Database connection timeout detected",
+                    "High connection pool utilization"
+                ],
+
+            "alerts":
+                [
+                    "DB_CONNECTION_TIMEOUT"
+                ]
 
         }
 
 
+        # Ensure agent_outputs exists
+
+        if context.agent_outputs is None:
+            context.agent_outputs = {}
+
+
+        context.agent_outputs["monitoring"] = monitoring_result
+
+
         print(
-            "[Monitoring Agent] Health check completed"
+            f"[{self.name}] Health check completed"
         )
-
-
-        if "agent_outputs" not in context:
-
-            context["agent_outputs"] = {}
-
-
-        context["agent_outputs"]["monitoring"] = monitoring_result
 
 
         return context

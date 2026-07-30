@@ -7,22 +7,22 @@ from autogen_core import (
 
 from app.autogen_core.messages import IncidentMessage
 
-from app.agents.knowledge_agent import KnowledgeAgent
+from app.agents.approval_agent import ApprovalAgent
 
 from app.schemas.agent_context_schema import IncidentContext
 
 
 
-class KnowledgeRoutedAgent(RoutedAgent):
+class ApprovalRoutedAgent(RoutedAgent):
 
 
     def __init__(self):
 
         super().__init__(
-            "Knowledge Routed Agent"
+            "Approval Routed Agent"
         )
 
-        self.business_agent = KnowledgeAgent()
+        self.business_agent = ApprovalAgent()
 
 
 
@@ -35,7 +35,7 @@ class KnowledgeRoutedAgent(RoutedAgent):
 
 
         print(
-            "\n========== Knowledge Routed Agent ==========\n"
+            "\n========== Approval Routed Agent ==========\n"
         )
 
 
@@ -53,15 +53,13 @@ class KnowledgeRoutedAgent(RoutedAgent):
 
 
         print(
-            "[Knowledge Routed Agent] Completed"
+            "[Approval Routed Agent] Completed"
         )
 
-
-        # Send result back to orchestrator
 
         await self.publish_message(
             IncidentMessage(
                 context=message.context
             ),
-            topic_id=DefaultTopicId("orchestrator")
+            topic_id=DefaultTopicId("incident_update")
         )

@@ -6,16 +6,19 @@ class ApprovalAgent(BaseAgent):
 
     def __init__(self):
 
-        super().__init__("Approval Agent")
+        super().__init__(
+            "Approval Agent"
+        )
 
 
     def process(
         self,
         context: IncidentContext
-    ):
+    ) -> IncidentContext:
+
 
         print(
-            f"\n[{self.name}] Checking approval requirements..."
+            f"\n[{self.name}] Validating approval requirement..."
         )
 
 
@@ -25,73 +28,42 @@ class ApprovalAgent(BaseAgent):
         )
 
 
-        actions = recommendation.get(
-            "recommended_actions",
-            []
+        approval_required = recommendation.get(
+            "requires_approval",
+            True
         )
 
 
-        automation_possible = recommendation.get(
-            "automation_possible",
-            False
-        )
+        approval_result = {
 
 
-        approval_status = "PENDING"
+            "approval_required":
 
-
-        approved_actions = []
-
-
-        # Enterprise safety rule
-        #
-        # Production changes require human approval
-
-        if (
-            context.environment == "PRODUCTION"
-            and automation_possible
-        ):
-
-            print(
-                f"[{self.name}] Production change detected"
-            )
-
-            print(
-                f"[{self.name}] Waiting for human approval"
-            )
-
-
-            approval_status = "PENDING"
-
-
-
-        else:
-
-            approval_status = "APPROVED"
-
-            approved_actions = actions
-
-
-
-        context.agent_outputs["approval"] = {
+                approval_required,
 
 
             "approval_status":
-                approval_status,
+
+                "PENDING_APPROVAL"
+                if approval_required
+                else "AUTO_APPROVED",
 
 
-            "requires_human_approval":
-                approval_status == "PENDING",
+            "approved_by":
 
-
-            "approved_actions":
-                approved_actions,
-
-
-            "requested_actions":
-                actions
+                None
 
         }
+
+
+
+        context.agent_outputs["approval"] = approval_result
+
+
+
+        print(
+            f"[{self.name}] Approval status updated"
+        )
 
 
         return context
