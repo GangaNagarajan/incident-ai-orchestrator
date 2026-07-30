@@ -1,8 +1,9 @@
 from app.agents.base_agent import BaseAgent
-from app.schemas.agent_context_schema import IncidentContext
+from app.mcp.client.mcp_client import MCPClient
 
 
 class MonitoringAgent(BaseAgent):
+
 
     def __init__(self):
 
@@ -10,11 +11,14 @@ class MonitoringAgent(BaseAgent):
             "Monitoring Agent"
         )
 
+        self.mcp_client = MCPClient()
+
+
 
     def process(
         self,
-        context: IncidentContext
-    ) -> IncidentContext:
+        context
+    ):
 
 
         print(
@@ -22,41 +26,31 @@ class MonitoringAgent(BaseAgent):
         )
 
 
-        monitoring_result = {
-
-            "application":
-                context.application,
-
-            "health_status":
-                "DEGRADED",
-
-            "services_checked":
-                [
-                    "Payment API",
-                    "Database"
-                ],
-
-            "observations":
-                [
-                    "Database connection timeout detected",
-                    "High connection pool utilization"
-                ],
-
-            "alerts":
-                [
-                    "DB_CONNECTION_TIMEOUT"
-                ]
-
-        }
+        # Pydantic IncidentContext
+        application_name = context.application
 
 
-        # Ensure agent_outputs exists
+
+        health_result = (
+            self.mcp_client.call_tool(
+                "get_application_health",
+                application_name=application_name
+            )
+        )
+
+
+        # Ensure dictionary exists
 
         if context.agent_outputs is None:
+
             context.agent_outputs = {}
 
 
-        context.agent_outputs["monitoring"] = monitoring_result
+
+        context.agent_outputs["monitoring"] = (
+            health_result
+        )
+
 
 
         print(
