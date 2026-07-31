@@ -1,12 +1,72 @@
-fastapi
-uvicorn
-pydantic
-python-dotenv
-loguru
-pytest
-sqlalchemy
-psycopg2-binary
-alembic
-autogen-agentchat==0.7.5
-autogen-core==0.7.5
-pydantic
+# ==============================
+# Core Python Utilities
+# ==============================
+python-dotenv==1.0.1
+pydantic==2.10.6
+
+
+# ==============================
+# AutoGen Core Framework
+# ==============================
+autogen-core==0.4.9
+
+
+# ==============================
+# LLM / OpenAI Integration
+# ==============================
+openai==1.61.0
+
+
+# ==============================
+# RAG / Embeddings
+# ==============================
+sentence-transformers==2.7.0
+transformers==4.41.2
+
+# Vector Database
+faiss-cpu==1.8.0.post1
+
+
+# ==============================
+# ML Dependencies
+# Intel Mac Compatible Versions
+# ==============================
+torch==2.2.2
+torchvision==0.17.2
+torchaudio==2.2.2
+
+numpy==1.26.4
+scipy==1.11.4
+
+
+# ==============================
+# API / Backend (Future FastAPI Layer)
+# ==============================
+fastapi==0.115.8
+uvicorn==0.34.0
+
+
+# ==============================
+# HTTP / Async Support
+# ==============================
+requests==2.32.3
+httpx==0.28.1
+
+
+# ==============================
+# MCP Integration
+# ==============================
+mcp==1.2.0
+
+
+# ==============================
+# Logging / Monitoring
+# ==============================
+loguru==0.7.3
+
+
+# ==============================
+# Testing
+# ==============================
+pytest==8.3.4
+pytest-asyncio==0.25.3
