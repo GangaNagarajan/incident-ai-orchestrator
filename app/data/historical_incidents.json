@@ -1,0 +1,25 @@
+[
+ {
+  "incident_id":"INC9821",
+  "title":"Database timeout issue",
+  "description":"Payment service experiencing database connection timeout",
+  "resolution":"Increase database connection pool size and review timeout configuration",
+  "category":"Database Failure"
+ },
+
+ {
+  "incident_id":"INC9732",
+  "title":"Payment API degradation",
+  "description":"Payment API returning 503 errors",
+  "resolution":"Restart service and validate database connectivity",
+  "category":"Application Failure"
+ },
+
+ {
+  "incident_id":"INC9654",
+  "title":"Database connection exhausted",
+  "description":"All database connections consumed causing application failure",
+  "resolution":"Increase DB pool size and optimize database queries",
+  "category":"Database Failure"
+ }
+]

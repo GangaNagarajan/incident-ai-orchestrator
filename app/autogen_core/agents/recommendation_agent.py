@@ -2,7 +2,7 @@ from autogen_core import (
     RoutedAgent,
     MessageContext,
     message_handler,
-    DefaultTopicId
+    AgentId
 )
 
 from app.autogen_core.messages import IncidentMessage
@@ -10,7 +10,6 @@ from app.autogen_core.messages import IncidentMessage
 from app.agents.recommendation_agent import RecommendationAgent
 
 from app.schemas.agent_context_schema import IncidentContext
-
 
 
 class RecommendationRoutedAgent(RoutedAgent):
@@ -23,7 +22,6 @@ class RecommendationRoutedAgent(RoutedAgent):
         )
 
         self.business_agent = RecommendationAgent()
-
 
 
     @message_handler
@@ -39,33 +37,63 @@ class RecommendationRoutedAgent(RoutedAgent):
         )
 
 
-        # Convert dict from AutoGen message
-        # back to IncidentContext object
+        #
+        # Convert dictionary to IncidentContext
+        #
 
         context = IncidentContext(
             **message.context
         )
 
 
+        #
+        # Execute Recommendation Agent
+        #
+
         updated_context = self.business_agent.process(
             context
         )
 
 
-        # Convert Pydantic object back to dict
-        # for next AutoGen message
+        #
+        # Convert back to dictionary
+        #
 
-        message.context = updated_context.model_dump()
+        if hasattr(updated_context, "model_dump"):
+
+            message.context = updated_context.model_dump()
+
+        elif hasattr(updated_context, "__dict__"):
+
+            message.context = updated_context.__dict__
+
+        else:
+
+            message.context = updated_context
 
 
         print(
             "[Recommendation Routed Agent] Completed"
         )
 
+        print(
+            "[Recommendation Routed Agent] Sending to Approval Agent..."
+        )
 
-        await self.publish_message(
+
+        #
+        # Send directly to Approval Agent
+        #
+
+        await self.send_message(
+
             IncidentMessage(
                 context=message.context
             ),
-            topic_id=DefaultTopicId("approval")
+
+            AgentId(
+                "approval",
+                "default"
+            )
+
         )

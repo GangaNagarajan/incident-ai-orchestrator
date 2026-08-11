@@ -8,13 +8,26 @@ from app.database.database import engine
 import app.models.incident
 
 
+from app.autogen_core.agent_registration import register_agents
+
+
+
 app = FastAPI(
     title="Incident AI Orchestrator",
     version="1.0.0"
 )
 
 
+
 Base.metadata.create_all(bind=engine)
+
+
+
+@app.on_event("startup")
+async def startup_event():
+
+    await register_agents()
+
 
 
 app.include_router(
@@ -22,15 +35,19 @@ app.include_router(
 )
 
 
+
 @app.get("/")
 def root():
+
     return {
         "message": "Incident AI running"
     }
 
 
+
 @app.get("/health")
 def health():
+
     return {
         "status": "healthy"
     }

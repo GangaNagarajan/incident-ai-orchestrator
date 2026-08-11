@@ -20,5 +20,17 @@ class IncidentResponse(BaseModel):
 
 
 class IncidentUpdate(BaseModel):
+
     status: Optional[str] = None
     priority: Optional[str] = None
+
+    root_cause: Optional[str] = None
+    confidence: Optional[str] = None
+
+    knowledge: Optional[str] = None
+
+    recommendations: Optional[str] = None
+
+    approval_status: Optional[str] = None
+
+    incident_summary: Optional[str] = None

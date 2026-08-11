@@ -2,15 +2,13 @@ from autogen_core import (
     RoutedAgent,
     MessageContext,
     message_handler,
-    DefaultTopicId
+    AgentId
 )
 
 from app.autogen_core.messages import IncidentMessage
 
 
-
 class OrchestratorRoutedAgent(RoutedAgent):
-
 
     def __init__(self):
 
@@ -18,13 +16,13 @@ class OrchestratorRoutedAgent(RoutedAgent):
             "Incident Orchestrator"
         )
 
+        self.current_incident_id = None
 
         self.monitoring_completed = False
 
         self.knowledge_completed = False
 
         self.latest_context = None
-
 
 
     @message_handler
@@ -34,126 +32,159 @@ class OrchestratorRoutedAgent(RoutedAgent):
         ctx: MessageContext
     ) -> None:
 
-
         print(
             "\n========== Incident Orchestrator =========="
         )
 
-
         incoming_context = message.context
 
+        incident_id = incoming_context.get("incident_id")
 
 
         #
-        # First message initialization
+        # New Incident
         #
-        if self.latest_context is None:
+        if self.current_incident_id != incident_id:
+
+            self.current_incident_id = incident_id
+
+            self.monitoring_completed = False
+
+            self.knowledge_completed = False
 
             self.latest_context = incoming_context
 
+            print(
+                "[Master Orchestrator] New Incident Received"
+            )
 
+            print(
+                "[Master Orchestrator] Dispatching Monitoring Agent..."
+            )
 
-        else:
+            await self.send_message(
 
+                IncidentMessage(
+                    context=self.latest_context
+                ),
 
-            #
-            # Merge agent outputs
-            #
-
-            existing_outputs = (
-                self.latest_context
-                .get(
-                    "agent_outputs",
-                    {}
+                AgentId(
+                    "monitoring",
+                    "default"
                 )
+
             )
-
-
-            incoming_outputs = (
-                incoming_context
-                .get(
-                    "agent_outputs",
-                    {}
-                )
-            )
-
-
-            existing_outputs.update(
-                incoming_outputs
-            )
-
-
-            self.latest_context[
-                "agent_outputs"
-            ] = existing_outputs
-
-
-
-        agent_outputs = (
-            self.latest_context
-            .get(
-                "agent_outputs",
-                {}
-            )
-        )
-
-
-
-        if "monitoring" in agent_outputs:
-
-            self.monitoring_completed = True
-
-
-
-        if "knowledge" in agent_outputs:
-
-            self.knowledge_completed = True
-
-
-
-
-        if not (
-
-            self.monitoring_completed
-
-            and
-
-            self.knowledge_completed
-
-        ):
 
 
             print(
-                "Waiting for remaining agents..."
+                "[Master Orchestrator] Dispatching Knowledge Agent..."
+            )
+
+            await self.send_message(
+
+                IncidentMessage(
+                    context=self.latest_context
+                ),
+
+                AgentId(
+                    "knowledge",
+                    "default"
+                )
+
             )
 
             return
 
 
+        #
+        # Merge returned context
+        #
+        existing_outputs = self.latest_context.setdefault(
+            "agent_outputs",
+            {}
+        )
 
+        incoming_outputs = incoming_context.get(
+            "agent_outputs",
+            {}
+        )
 
-        print(
-            "Monitoring + Knowledge completed"
+        existing_outputs.update(
+            incoming_outputs
+        )
+
+        self.latest_context.update(
+            incoming_context
         )
 
 
+        #
+        # Track completed agents
+        #
+        if "monitoring" in incoming_outputs:
+
+            self.monitoring_completed = True
+
+            print(
+                "[Master Orchestrator] Monitoring completed"
+            )
+
+
+        if "knowledge" in incoming_outputs:
+
+            self.knowledge_completed = True
+
+            print(
+                "[Master Orchestrator] Knowledge completed"
+            )
+
+
+        #
+        # Wait for both
+        #
+        if not (
+            self.monitoring_completed
+            and
+            self.knowledge_completed
+        ):
+
+            print(
+                "[Master Orchestrator] Waiting for remaining agents..."
+            )
+
+            return
+
 
         print(
-            "Sending evidence context to RCA Agent"
+            "[Master Orchestrator] Monitoring + Knowledge completed"
+        )
+
+        print(
+            "[Master Orchestrator] Routing to RCA Agent..."
         )
 
 
-
-        await self.publish_message(
+        await self.send_message(
 
             IncidentMessage(
-
                 context=self.latest_context
-
             ),
 
-            topic_id=DefaultTopicId(
-                "rca"
+            AgentId(
+                "rca",
+                "default"
             )
 
         )
+
+
+        #
+        # Reset for next incident
+        #
+        self.current_incident_id = None
+
+        self.monitoring_completed = False
+
+        self.knowledge_completed = False
+
+        self.latest_context = None

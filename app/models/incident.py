@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String
+from sqlalchemy import Column, String, Text
 
 from app.database.base import Base
 
@@ -19,7 +19,7 @@ class Incident(Base):
     )
 
     description = Column(
-        String,
+        Text,
         nullable=False
     )
 
@@ -41,4 +41,34 @@ class Incident(Base):
     priority = Column(
         String,
         nullable=False
+    )
+
+    root_cause = Column(
+        Text,
+        nullable=True
+    )
+
+    confidence = Column(
+        String,
+        nullable=True
+    )
+
+    knowledge = Column(
+        Text,
+        nullable=True
+    )
+
+    recommendations = Column(
+        Text,
+        nullable=True
+    )
+
+    approval_status = Column(
+        String,
+        nullable=True
+    )
+
+    incident_summary = Column(
+        Text,
+        nullable=True
     )

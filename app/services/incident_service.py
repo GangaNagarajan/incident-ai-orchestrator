@@ -67,3 +67,16 @@ class IncidentService:
                 exclude_none=True
             )
         )
+
+    def update_ai_result(
+        self,
+        db: Session,
+        incident_id: str,
+        data: dict
+    ):
+
+        return self.repository.update_ai_result(
+            db,
+            incident_id,
+            data
+        )

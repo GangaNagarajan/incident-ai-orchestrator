@@ -2,7 +2,7 @@ from autogen_core import (
     RoutedAgent,
     MessageContext,
     message_handler,
-    DefaultTopicId
+    AgentId
 )
 
 from app.autogen_core.messages import IncidentMessage
@@ -57,9 +57,9 @@ class ApprovalRoutedAgent(RoutedAgent):
         )
 
 
-        await self.publish_message(
+        await self.send_message(
             IncidentMessage(
                 context=message.context
             ),
-            topic_id=DefaultTopicId("incident_update")
+            AgentId("incident_update","default")
         )

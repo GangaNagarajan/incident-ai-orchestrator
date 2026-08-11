@@ -64,3 +64,14 @@ class IncidentUpdateRoutedAgent(RoutedAgent):
         print(
             message.context
         )
+
+        print("\n========== FINAL AI RESULT ==========")
+
+        import json
+
+        print(
+    json.dumps(
+        message.context,
+        indent=2
+    )
+)

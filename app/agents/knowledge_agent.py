@@ -1,14 +1,18 @@
-from app.agents.base_agent import BaseAgent
 from app.schemas.agent_context_schema import IncidentContext
 
+from app.llm.llm_factory import LLMFactory
 
-class KnowledgeAgent(BaseAgent):
+from app.rag.faiss_retriever import FAISSRetriever
+
+
+class KnowledgeAgent:
+
 
     def __init__(self):
 
-        super().__init__(
-            "Knowledge Agent"
-        )
+        self.retriever = FAISSRetriever()
+
+        self.client = LLMFactory.get_client()
 
 
     def process(
@@ -18,39 +22,61 @@ class KnowledgeAgent(BaseAgent):
 
 
         print(
-            f"\n[{self.name}] Searching knowledge base..."
+            "\n[Knowledge Agent] Searching Knowledge Base..."
         )
 
 
-        knowledge_result = {
+        query = f"""
+        Incident:
+        {context.description}
 
-            "similar_incidents": [
+        Application:
+        {context.application}
 
-                "INC9821 - Database timeout issue",
-                "INC9732 - Payment API degradation"
+        Environment:
+        {context.environment}
+        """
 
-            ],
-
-            "matched_solution":
-
-                "Increase DB connection pool and review timeout configuration",
-
-            "knowledge_source":
-
-                "Enterprise Knowledge Base"
-
-        }
+        documents = self.retriever.retrieve(
+            query,
+            top_k=3
+        )
 
 
-        if context.agent_outputs is None:
-            context.agent_outputs = {}
+        try:
+
+            response = self.client.knowledge(
+
+                context.model_dump(),
+
+                documents
+
+            )
+
+        except Exception as ex:
+
+            import traceback
+
+            print(f"[Knowledge Agent] LLM Error : {ex}")
+
+            traceback.print_exc()
+
+            response = {
+
+                "similar_incidents": [],
+
+                "recommended_resolutions": [],
+
+                "source": "Gemini Error"
+
+            }
 
 
-        context.agent_outputs["knowledge"] = knowledge_result
+        context.agent_outputs["knowledge"] = response
 
 
         print(
-            f"[{self.name}] Knowledge retrieval completed"
+            "[Knowledge Agent] RAG retrieval completed"
         )
 
 

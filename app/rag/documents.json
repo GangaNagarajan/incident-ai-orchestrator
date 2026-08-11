@@ -1,0 +1,52 @@
+[
+  {
+    "id": "INC9654",
+    "text": "Database connection pool exhausted due to increased traffic. Increasing pool size resolved the issue.",
+    "category": "database"
+  },
+  {
+    "id": "INC9821",
+    "text": "Application timeout caused by slow SQL queries. Query optimization resolved the incident.",
+    "category": "database"
+  },
+  {
+    "id": "INC9032",
+    "text": "Recent deployment introduced configuration issue causing service degradation.",
+    "category": "deployment"
+  },
+  {
+    "id": "INC9101",
+    "text": "LDAP connection timeout caused authentication requests to fail. Reviewing LDAP server connectivity and increasing connection timeout resolved the issue.",
+    "category": "authentication"
+  },
+  {
+    "id": "INC9102",
+    "text": "Users were unable to reset passwords because the LDAP authentication service was experiencing high latency. LDAP server health checks and connection pool tuning resolved the incident.",
+    "category": "authentication"
+  },
+  {
+    "id": "INC9103",
+    "text": "Authentication failures occurred because of intermittent LDAP connectivity problems. Network connectivity and LDAP server availability were restored to resolve the issue.",
+    "category": "authentication"
+  },
+  {
+    "id": "INC9201",
+    "text": "API requests returned HTTP 401 errors because authentication tokens were rejected. Reviewing token validation and identity provider configuration resolved the issue.",
+    "category": "api"
+  },
+  {
+    "id": "INC9202",
+    "text": "API Gateway returned intermittent HTTP 503 errors due to unhealthy backend service instances. Restarting unhealthy instances resolved the incident.",
+    "category": "api"
+  },
+  {
+    "id": "INC9301",
+    "text": "Email notifications were delayed because the notification queue contained a large backlog. Increasing worker capacity and clearing the queue resolved the issue.",
+    "category": "notification"
+  },
+  {
+    "id": "INC9401",
+    "text": "File uploads failed because the document storage service was unavailable. Restoring storage connectivity resolved the incident.",
+    "category": "storage"
+  }
+]

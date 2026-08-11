@@ -7,23 +7,20 @@ from autogen_core import (
 
 from app.autogen_core.messages import IncidentMessage
 
-from app.agents.monitoring_agent import MonitoringAgent
+from app.agents.scope_agent import ScopeAgent
 
 from app.schemas.agent_context_schema import IncidentContext
 
 
-
-class MonitoringRoutedAgent(RoutedAgent):
-
+class ScopeRoutedAgent(RoutedAgent):
 
     def __init__(self):
 
         super().__init__(
-            "Monitoring Routed Agent"
+            "Scope Routed Agent"
         )
 
-        self.business_agent = MonitoringAgent()
-
+        self.business_agent = ScopeAgent()
 
 
     @message_handler
@@ -33,11 +30,9 @@ class MonitoringRoutedAgent(RoutedAgent):
         ctx: MessageContext
     ) -> None:
 
-
         print(
-            "\n========== Monitoring Routed Agent ==========\n"
+            "\n========== Scope Routed Agent ==========\n"
         )
-
 
         context = IncidentContext(
             **message.context
@@ -49,15 +44,36 @@ class MonitoringRoutedAgent(RoutedAgent):
         )
 
 
-        message.context = updated_context.model_dump()
-
-
-        print(
-            "[Monitoring Routed Agent] Completed"
+        message.context = (
+            updated_context.model_dump()
         )
 
 
-        # Send result back to orchestrator
+        scope = (
+            message.context
+            .get("agent_outputs", {})
+            .get("scope", {})
+        )
+
+
+        if not scope.get(
+            "is_incident",
+            True
+        ):
+
+            print(
+                "[Scope Routed Agent] "
+                "Non-incident request rejected"
+            )
+
+            return
+
+
+        print(
+            "[Scope Routed Agent] "
+            "Valid enterprise incident"
+        )
+
 
         await self.send_message(
             IncidentMessage(
@@ -67,4 +83,4 @@ class MonitoringRoutedAgent(RoutedAgent):
                 "orchestrator",
                 "default"
             )
-)
+        )

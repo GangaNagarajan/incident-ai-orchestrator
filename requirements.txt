@@ -1,72 +1,96 @@
-# ==============================
-# Core Python Utilities
-# ==============================
-python-dotenv==1.0.1
-pydantic==2.10.6
+# ==================================================
+# Incident AI Orchestrator - Python Dependencies
+# ==================================================
+
+# --------------------------
+# FastAPI Web Framework
+# --------------------------
+fastapi==0.116.1
+uvicorn[standard]==0.35.0
 
 
-# ==============================
-# AutoGen Core Framework
-# ==============================
-autogen-core==0.4.9
+# --------------------------
+# Database Layer
+# --------------------------
+sqlalchemy==2.0.43
+psycopg2-binary==2.9.10
 
 
-# ==============================
-# LLM / OpenAI Integration
-# ==============================
-openai==1.61.0
+# --------------------------
+# Pydantic Models / Settings
+# --------------------------
+pydantic==2.11.7
+pydantic-settings==2.10.1
 
 
-# ==============================
-# RAG / Embeddings
-# ==============================
-sentence-transformers==2.7.0
-transformers==4.41.2
-
-# Vector Database
-faiss-cpu==1.8.0.post1
+# --------------------------
+# AutoGen Core Multi-Agent Framework
+# --------------------------
+autogen-core==0.6.4
 
 
-# ==============================
-# ML Dependencies
-# Intel Mac Compatible Versions
-# ==============================
-torch==2.2.2
-torchvision==0.17.2
-torchaudio==2.2.2
+# --------------------------
+# MCP Framework
+# --------------------------
+mcp==1.12.4
 
+
+# --------------------------
+# RAG Components
+# --------------------------
+#sentence-transformers==5.0.0
+faiss-cpu==1.10.0
+
+
+# --------------------------
+# Machine Learning Libraries
+# --------------------------
 numpy==1.26.4
 scipy==1.11.4
+torch==2.2.2
+transformers==4.54.1
 
 
-# ==============================
-# API / Backend (Future FastAPI Layer)
-# ==============================
-fastapi==0.115.8
-uvicorn==0.34.0
+# --------------------------
+# HuggingFace Model Support
+# --------------------------
+huggingface-hub==0.34.3
 
 
-# ==============================
-# HTTP / Async Support
-# ==============================
-requests==2.32.3
+# --------------------------
+# Environment Variables
+# --------------------------
+python-dotenv==1.1.1
+
+
+# --------------------------
+# HTTP / API Communication
+# --------------------------
+requests==2.32.4
+aiohttp==3.12.15
+
+
+# --------------------------
+# Async / Utility Dependencies
+# --------------------------
+typing_extensions==4.14.1
+
+
+# --------------------------
+# Testing (Recommended)
+# --------------------------
+pytest==8.4.1
 httpx==0.28.1
 
+# --------------------
+# LLM 
+# --------------------
+google-genai==1.30.0
 
-# ==============================
-# MCP Integration
-# ==============================
-mcp==1.2.0
-
-
-# ==============================
-# Logging / Monitoring
-# ==============================
-loguru==0.7.3
-
-
-# ==============================
-# Testing
-# ==============================
-pytest==8.3.4
-pytest-asyncio==0.25.3
+# -------------
+# Streamlit Dependencies
+# -------------
+streamlit 
+requests 
+pandas 
+plotly
