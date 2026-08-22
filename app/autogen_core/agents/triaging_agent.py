@@ -5,15 +5,12 @@ from autogen_core import (
     AgentId
 )
 
-
 from app.autogen_core.messages import IncidentMessage
-
 from app.agents.triaging_agent import TriagingAgent
-
+from app.schemas.agent_context_schema import IncidentContext
 
 
 class TriagingRoutedAgent(RoutedAgent):
-
 
     def __init__(self):
 
@@ -24,7 +21,6 @@ class TriagingRoutedAgent(RoutedAgent):
         self.business_agent = TriagingAgent()
 
 
-
     @message_handler
     async def handle_incident(
         self,
@@ -32,53 +28,55 @@ class TriagingRoutedAgent(RoutedAgent):
         ctx: MessageContext
     ) -> None:
 
-
         print(
             "\n========== Triaging Routed Agent ==========\n"
         )
-
 
         print(
             "[Triaging Agent] Analysing incident..."
         )
 
+        # -------------------------------------------------
+        # Convert message context dict -> IncidentContext
+        # -------------------------------------------------
+
+        context = IncidentContext(
+            **message.context
+        )
+
+        # -------------------------------------------------
+        # Process using business agent
+        # -------------------------------------------------
 
         updated_context = self.business_agent.process(
-            message.context
+            context
         )
 
+        # -------------------------------------------------
+        # Convert IncidentContext -> dict
+        # -------------------------------------------------
 
-        # Ensure context remains dictionary
-        if hasattr(updated_context, "model_dump"):
-
-            updated_context = updated_context.model_dump()
-
-
-        elif hasattr(updated_context, "__dict__"):
-
-            updated_context = updated_context.__dict__
-
-
-
-        message.context = updated_context
-
-
+        message.context = (
+            updated_context.model_dump()
+        )
 
         print(
-            f"[Triaging Agent] Category: {message.context.get('category')}"
+            f"[Triaging Agent] Category: "
+            f"{message.context.get('category')}"
         )
-
 
         print(
-            f"[Triaging Agent] Priority: {message.context.get('priority')}"
+            f"[Triaging Agent] Priority: "
+            f"{message.context.get('priority')}"
         )
-
 
         print(
             "Sending incident to Master Orchestrator..."
         )
 
-
+        # -------------------------------------------------
+        # Send to Master Orchestrator
+        # -------------------------------------------------
 
         await self.send_message(
 
@@ -86,10 +84,8 @@ class TriagingRoutedAgent(RoutedAgent):
                 context=message.context
             ),
 
-
             AgentId(
                 "orchestrator",
                 "default"
             )
-
         )

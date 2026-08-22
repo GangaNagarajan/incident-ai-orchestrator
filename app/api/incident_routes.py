@@ -6,17 +6,12 @@ from app.schemas.incident_schema import (
     IncidentUpdate
 )
 
-from app.schemas.agent_context_schema import IncidentContext
-
 from app.services.incident_service import IncidentService
-
 from app.database.session import get_db
 
 from app.services.incident_orchestrator_service import (
     IncidentOrchestratorService
 )
-
-from app.agents.scope_agent import ScopeAgent
 
 
 router = APIRouter(
@@ -29,8 +24,10 @@ service = IncidentService()
 
 orchestrator_service = IncidentOrchestratorService()
 
-scope_agent = ScopeAgent()
 
+# ============================================================
+# CREATE INCIDENT
+# ============================================================
 
 @router.post("/")
 def create_incident(
@@ -44,6 +41,10 @@ def create_incident(
     )
 
 
+# ============================================================
+# GET ALL INCIDENTS
+# ============================================================
+
 @router.get("/")
 def get_all_incidents(
     db: Session = Depends(get_db)
@@ -53,6 +54,10 @@ def get_all_incidents(
         db
     )
 
+
+# ============================================================
+# GET SINGLE INCIDENT
+# ============================================================
 
 @router.get("/{incident_id}")
 def get_incident(
@@ -74,6 +79,10 @@ def get_incident(
 
     return incident
 
+
+# ============================================================
+# UPDATE INCIDENT
+# ============================================================
 
 @router.put("/{incident_id}")
 def update_incident(
@@ -98,6 +107,10 @@ def update_incident(
     return incident
 
 
+# ============================================================
+# START AI ANALYSIS
+# ============================================================
+
 @router.post("/{incident_id}/process")
 async def process_incident(
     incident_id: str,
@@ -108,9 +121,9 @@ async def process_incident(
         f"\n[API] AI processing requested for {incident_id}"
     )
 
-    # -----------------------------------------
-    # GET INCIDENT
-    # -----------------------------------------
+    # --------------------------------------------------------
+    # Get incident
+    # --------------------------------------------------------
 
     incident = service.get_incident(
         db,
@@ -124,101 +137,25 @@ async def process_incident(
             detail="Incident not found"
         )
 
-    # -----------------------------------------
-    # SCOPE VALIDATION
-    # -----------------------------------------
-
-    print(
-        "[API] Validating incident scope..."
-    )
-
-    context = IncidentContext(
-
-        incident_id=
-            incident.incident_id,
-
-        title=
-            incident.title,
-
-        description=
-            incident.description,
-
-        application=
-            incident.application,
-
-        environment=
-            incident.environment,
-
-        status=
-            incident.status,
-
-        agent_outputs={}
-    )
-
-    updated_context = scope_agent.process(
-        context
-    )
-
-    scope = updated_context.agent_outputs.get(
-        "scope",
-        {}
-    )
-
-    # -----------------------------------------
-    # REJECT NON-INCIDENT
-    # -----------------------------------------
-
-    if scope.get("is_incident") is False:
-
-        print(
-            "[API] Non-incident request rejected"
-        )
-
-        return {
-
-            "status":
-                "REJECTED",
-
-            "message":
-                "This is not an enterprise IT incident.",
-
-            "reason":
-                scope.get(
-                    "reason",
-                    "Request is outside enterprise IT incident scope."
-                )
-
-        }
-
-    # -----------------------------------------
-    # START AI WORKFLOW
-    # -----------------------------------------
-
-    print(
-        "[API] Incident validated."
-    )
-
-    print(
-        "[API] Starting full AI workflow..."
-    )
+    # --------------------------------------------------------
+    # Start orchestrator
+    # Scope validation is handled inside the workflow.
+    # --------------------------------------------------------
 
     result = await orchestrator_service.process_incident(
         incident
     )
 
-    return {
+    # --------------------------------------------------------
+    # Return persisted workflow result
+    # --------------------------------------------------------
 
-        "status":
-            "STARTED",
+    return result
 
-        "message":
-            "Incident AI workflow started",
 
-        "result":
-            result
-
-    }
-
+# ============================================================
+# GET AI ANALYSIS
+# ============================================================
 
 @router.get("/{incident_id}/analysis")
 def get_analysis(
@@ -243,11 +180,42 @@ def get_analysis(
         "incident_id":
             incident.incident_id,
 
+        # ----------------------------------------
+        # AI workflow status
+        # PENDING / RUNNING / COMPLETED /
+        # REJECTED / FAILED
+        # ----------------------------------------
+
+        "analysis_status":
+            incident.analysis_status,
+
+        # ----------------------------------------
+        # Failure information
+        # ----------------------------------------
+
+        "analysis_error":
+            incident.analysis_error,
+
+        # ----------------------------------------
+        # Scope rejection information
+        # ----------------------------------------
+
+        "rejection_reason":
+            incident.rejection_reason,
+
+        # ----------------------------------------
+        # Incident information
+        # ----------------------------------------
+
         "status":
             incident.status,
 
         "priority":
             incident.priority,
+
+        # ----------------------------------------
+        # AI analysis results
+        # ----------------------------------------
 
         "root_cause":
             incident.root_cause,
@@ -266,5 +234,4 @@ def get_analysis(
 
         "summary":
             incident.incident_summary
-
     }

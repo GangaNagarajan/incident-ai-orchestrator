@@ -44,8 +44,8 @@ Return ONLY JSON.
 Format:
 
 {{
-    "is_incident": true,
-    "reason": "short explanation"
+"is_incident": true,
+"reason": "short explanation"
 }}
 
 Set is_incident to true for enterprise IT incidents such as:
@@ -106,10 +106,13 @@ Set is_incident to false for unrelated requests such as:
             }
 
 
+        # -----------------------------------------
+        # Store scope result in context
+        # -----------------------------------------
+
         if context.agent_outputs is None:
 
             context.agent_outputs = {}
-
 
         context.agent_outputs["scope"] = scope_result
 
@@ -117,6 +120,26 @@ Set is_incident to false for unrelated requests such as:
         print(
             f"[{self.name}] Result: {scope_result}"
         )
+
+
+        # -----------------------------------------
+        # Reject irrelevant requests
+        # -----------------------------------------
+
+        if scope_result.get("is_incident") is False:
+
+            context.agent_outputs["scope_rejected"] = True
+
+            context.agent_outputs["rejection_reason"] = (
+                scope_result.get(
+                    "reason",
+                    "Request is not an enterprise IT incident."
+                )
+            )
+
+        else:
+
+            context.agent_outputs["scope_rejected"] = False
 
 
         return context

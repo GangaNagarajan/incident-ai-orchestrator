@@ -82,18 +82,10 @@ def create_incident(
 ):
 
     payload = {
-
-        "title":
-            title,
-
-        "description":
-            description,
-
-        "application":
-            application,
-
-        "environment":
-            environment
+        "title": title,
+        "description": description,
+        "application": application,
+        "environment": environment
     }
 
     try:
@@ -272,6 +264,14 @@ if create_button:
                 "incident_id"
             )
 
+            st.session_state[
+                "latest_analysis"
+            ] = None
+
+            st.session_state[
+                "analysis_result"
+            ] = None
+
             st.rerun()
 
 
@@ -307,14 +307,11 @@ else:
         for incident in incidents
     }
 
-
     option_labels = list(
         incident_options.keys()
     )
 
-
     default_index = 0
-
 
     if (
         "selected_incident_id"
@@ -335,23 +332,19 @@ else:
 
                 break
 
-
     selected_label = st.selectbox(
         "Select Incident",
         option_labels,
         index=default_index
     )
 
-
     selected_incident_id = (
         incident_options[selected_label]
     )
 
-
     st.session_state[
         "selected_incident_id"
     ] = selected_incident_id
-
 
     selected_incident = next(
         (
@@ -424,7 +417,6 @@ else:
                 )
             )
 
-
         st.write(
             "**Description:**"
         )
@@ -447,21 +439,14 @@ else:
         "AI Analysis"
     )
 
-
     if st.button(
         "▶️ Run AI Analysis",
         type="primary"
     ):
 
-        # Clear previous UI state
         st.session_state[
             "analysis_result"
         ] = None
-
-        st.session_state[
-            "analysis_rejected"
-        ] = False
-
 
         with st.spinner(
             "Validating incident..."
@@ -471,91 +456,68 @@ else:
                 selected_incident_id
             )
 
-
         if result:
 
-            # =================================================
-            # IRRELEVANT / NON-INCIDENT
-            # =================================================
+            st.session_state[
+                "analysis_result"
+            ] = result
 
-            if result.get(
-                "status"
-            ) == "REJECTED":
+            analysis_status = result.get(
+                "analysis_status"
+            )
 
-                st.session_state[
-                    "analysis_rejected"
-                ] = True
+            if analysis_status == "REJECTED":
 
-                st.session_state[
-                    "analysis_result"
-                ] = result
+                st.error(
+                    "❌ Not an Enterprise IT Incident"
+                )
 
+                st.warning(
+                    result.get(
+                        "rejection_reason",
+                        "This request is outside "
+                        "enterprise IT incident scope."
+                    )
+                )
 
-            # =================================================
-            # VALID INCIDENT
-            # =================================================
+            elif analysis_status == "FAILED":
 
-            elif result.get(
-                "status"
-            ) == "STARTED":
+                st.error(
+                    "❌ AI Analysis Failed"
+                )
 
-                st.session_state[
-                    "analysis_result"
-                ] = result
+                st.write(
+                    result.get(
+                        "error",
+                        "An unknown error occurred."
+                    )
+                )
+
+            elif analysis_status == "RUNNING":
 
                 st.success(
-                    "✅ Incident validated. "
-                    "AI analysis started."
+                    "✅ Incident AI workflow started."
                 )
 
                 st.info(
-                    "The AI workflow has completed "
-                    "its request processing. "
                     "Click **Refresh Analysis** "
-                    "to view the latest results."
+                    "to view the latest result."
+                )
+
+            elif analysis_status == "COMPLETED":
+
+                st.success(
+                    "✅ AI analysis completed."
                 )
 
             else:
 
-                st.warning(
+                st.info(
                     result.get(
                         "message",
-                        "Unexpected response."
+                        "AI analysis request submitted."
                     )
                 )
-
-
-    # ========================================================
-    # SHOW REJECTION RESULT
-    # ========================================================
-
-    if st.session_state.get(
-        "analysis_rejected",
-        False
-    ):
-
-        result = st.session_state.get(
-            "analysis_result"
-        )
-
-        if result:
-
-            st.error(
-                "❌ Not an Enterprise IT Incident"
-            )
-
-            st.warning(
-                result.get(
-                    "reason",
-                    "This request is outside "
-                    "enterprise IT incident scope."
-                )
-            )
-
-            st.info(
-                "AI analysis was not started "
-                "for this request."
-            )
 
 
     # ========================================================
@@ -580,15 +542,25 @@ else:
 
             st.rerun()
 
+        else:
+
+            st.error(
+                "Unable to retrieve analysis."
+            )
+
 
     # ========================================================
-    # DISPLAY ANALYSIS
+    # LOAD EXISTING ANALYSIS
     # ========================================================
 
     analysis = st.session_state.get(
         "latest_analysis"
     )
 
+
+    # ========================================================
+    # DISPLAY ANALYSIS
+    # ========================================================
 
     if analysis:
 
@@ -598,193 +570,285 @@ else:
             "Incident Analysis Results"
         )
 
-
-        # ====================================================
-        # STATUS
-        # ====================================================
-
-        status = analysis.get(
-            "status"
+        analysis_status = analysis.get(
+            "analysis_status"
         )
 
-        priority = analysis.get(
-            "priority"
+        rejection_reason = analysis.get(
+            "rejection_reason"
         )
 
-        approval_status = analysis.get(
-            "approval_status"
+        analysis_error = analysis.get(
+            "analysis_error"
         )
-
-
-        col1, col2, col3 = st.columns(3)
-
-
-        with col1:
-
-            st.metric(
-                "Status",
-                status or "N/A"
-            )
-
-
-        with col2:
-
-            st.metric(
-                "Priority",
-                priority or "N/A"
-            )
-
-
-        with col3:
-
-            st.metric(
-                "Approval",
-                approval_status or "N/A"
-            )
 
 
         # ====================================================
-        # ROOT CAUSE
+        # REJECTED
         # ====================================================
 
-        st.subheader(
-            "🔍 Root Cause"
-        )
+        if analysis_status == "REJECTED":
 
-        root_cause = analysis.get(
-            "root_cause"
-        )
-
-        if root_cause:
-
-            st.write(
-                root_cause
+            st.error(
+                "❌ AI Analysis Rejected"
             )
 
-        else:
+            st.subheader(
+                "Reason"
+            )
+
+            st.warning(
+                rejection_reason
+                or
+                "This request is outside "
+                "enterprise IT incident scope."
+            )
 
             st.info(
-                "Root cause analysis is not available yet."
+                "AI analysis was not started "
+                "because this request is not "
+                "an enterprise IT incident."
             )
 
 
         # ====================================================
-        # CONFIDENCE
+        # RUNNING / PENDING
         # ====================================================
 
-        st.subheader(
-            "Confidence"
-        )
-
-        confidence = analysis.get(
-            "confidence"
-        )
-
-        if confidence:
-
-            st.write(
-                confidence
-            )
-
-        else:
+        elif analysis_status in [
+            "PENDING",
+            "RUNNING"
+        ]:
 
             st.info(
-                "Confidence is not available yet."
+                "⏳ AI analysis is still processing..."
             )
-
-
-        # ====================================================
-        # SUMMARY
-        # ====================================================
-
-        st.subheader(
-            "📝 Summary"
-        )
-
-        summary = analysis.get(
-            "summary"
-        )
-
-        if summary:
 
             st.write(
-                summary
-            )
-
-        else:
-
-            st.info(
-                "Summary is not available yet."
+                "Please wait and click "
+                "**Refresh Analysis**."
             )
 
 
         # ====================================================
-        # KNOWLEDGE
+        # FAILED
         # ====================================================
 
-        st.subheader(
-            "📚 Knowledge"
-        )
+        elif analysis_status == "FAILED":
 
-        knowledge = analysis.get(
-            "knowledge"
-        )
+            st.error(
+                "❌ AI Analysis Failed"
+            )
 
-        if knowledge:
+            st.write(
+                analysis_error
+                or
+                "An unknown error occurred "
+                "during AI analysis."
+            )
 
-            if isinstance(
-                knowledge,
-                dict
-            ):
 
-                st.json(
-                    knowledge
+        # ====================================================
+        # COMPLETED
+        # ====================================================
+
+        elif analysis_status == "COMPLETED":
+
+            status = analysis.get(
+                "status"
+            )
+
+            priority = analysis.get(
+                "priority"
+            )
+
+            approval_status = analysis.get(
+                "approval_status"
+            )
+
+
+            # =================================================
+            # STATUS
+            # =================================================
+
+            col1, col2, col3 = st.columns(3)
+
+            with col1:
+
+                st.metric(
+                    "Status",
+                    status or "N/A"
+                )
+
+            with col2:
+
+                st.metric(
+                    "Priority",
+                    priority or "N/A"
+                )
+
+            with col3:
+
+                st.metric(
+                    "Approval",
+                    approval_status or "N/A"
+                )
+
+
+            # =================================================
+            # ROOT CAUSE
+            # =================================================
+
+            st.subheader(
+                "🔍 Root Cause"
+            )
+
+            root_cause = analysis.get(
+                "root_cause"
+            )
+
+            if root_cause:
+
+                st.write(
+                    root_cause
                 )
 
             else:
 
-                st.code(
-                    str(knowledge)
+                st.info(
+                    "Root cause analysis is not available."
                 )
 
-        else:
 
-            st.info(
-                "Knowledge results are not available yet."
+            # =================================================
+            # CONFIDENCE
+            # =================================================
+
+            st.subheader(
+                "Confidence"
             )
 
+            confidence = analysis.get(
+                "confidence"
+            )
 
-        # ====================================================
-        # RECOMMENDATIONS
-        # ====================================================
+            if confidence is not None:
 
-        st.subheader(
-            "💡 Recommendations"
-        )
-
-        recommendations = analysis.get(
-            "recommendations"
-        )
-
-        if recommendations:
-
-            if isinstance(
-                recommendations,
-                dict
-            ):
-
-                st.json(
-                    recommendations
+                st.write(
+                    confidence
                 )
 
             else:
 
-                st.code(
-                    str(recommendations)
+                st.info(
+                    "Confidence is not available."
                 )
+
+
+            # =================================================
+            # SUMMARY
+            # =================================================
+
+            st.subheader(
+                "📝 Summary"
+            )
+
+            summary = analysis.get(
+                "summary"
+            )
+
+            if summary:
+
+                st.write(
+                    summary
+                )
+
+            else:
+
+                st.info(
+                    "Summary is not available."
+                )
+
+
+            # =================================================
+            # KNOWLEDGE
+            # =================================================
+
+            st.subheader(
+                "📚 Knowledge"
+            )
+
+            knowledge = analysis.get(
+                "knowledge"
+            )
+
+            if knowledge:
+
+                if isinstance(
+                    knowledge,
+                    dict
+                ):
+
+                    st.json(
+                        knowledge
+                    )
+
+                else:
+
+                    st.code(
+                        str(knowledge)
+                    )
+
+            else:
+
+                st.info(
+                    "Knowledge results are not available."
+                )
+
+
+            # =================================================
+            # RECOMMENDATIONS
+            # =================================================
+
+            st.subheader(
+                "💡 Recommendations"
+            )
+
+            recommendations = analysis.get(
+                "recommendations"
+            )
+
+            if recommendations:
+
+                if isinstance(
+                    recommendations,
+                    dict
+                ):
+
+                    st.json(
+                        recommendations
+                    )
+
+                else:
+
+                    st.code(
+                        str(recommendations)
+                    )
+
+            else:
+
+                st.info(
+                    "Recommendations are not available."
+                )
+
+
+        # ====================================================
+        # UNKNOWN STATUS
+        # ====================================================
 
         else:
 
-            st.info(
-                "Recommendations are not available yet."
+            st.warning(
+                f"Unknown analysis status: "
+                f"{analysis_status}"
             )

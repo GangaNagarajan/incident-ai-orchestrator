@@ -43,6 +43,26 @@ class Incident(Base):
         nullable=False
     )
 
+    # ---------------------------------
+    # AI Analysis Results
+    # ---------------------------------
+
+    analysis_status = Column(
+        String,
+        nullable=False,
+        default="PENDING"
+    )
+
+    analysis_error = Column(
+        Text,
+        nullable=True
+    )
+
+    rejection_reason = Column(
+        Text,
+        nullable=True
+    )
+
     root_cause = Column(
         Text,
         nullable=True

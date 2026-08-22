@@ -60,13 +60,47 @@ class IncidentService:
         updates
     ):
 
-        return self.repository.update(
+        incident = self.repository.get_by_id(
             db,
-            incident_id,
-            updates.model_dump(
-                exclude_none=True
-            )
+            incident_id
         )
+
+        if not incident:
+            return None
+
+        # Support both Pydantic models and dictionaries
+        if hasattr(updates, "model_dump"):
+
+            update_data = updates.model_dump(
+                exclude_unset=True
+            )
+
+        elif isinstance(updates, dict):
+
+            update_data = updates
+
+        else:
+
+            raise TypeError(
+                "updates must be a dictionary or Pydantic model"
+            )
+
+        # Apply updates
+        for field, value in update_data.items():
+
+            if hasattr(incident, field):
+
+                setattr(
+                    incident,
+                    field,
+                    value
+                )
+
+        db.commit()
+
+        db.refresh(incident)
+
+        return incident
 
     def update_ai_result(
         self,

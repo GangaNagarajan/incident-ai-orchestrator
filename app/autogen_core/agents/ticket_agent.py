@@ -7,11 +7,10 @@ from autogen_core import (
 
 from app.autogen_core.messages import IncidentMessage
 from app.agents.ticket_agent import TicketAgent
-
+from app.schemas.agent_context_schema import IncidentContext
 
 
 class TicketRoutedAgent(RoutedAgent):
-
 
     def __init__(self):
 
@@ -22,7 +21,6 @@ class TicketRoutedAgent(RoutedAgent):
         self.business_agent = TicketAgent()
 
 
-
     @message_handler
     async def handle_incident(
         self,
@@ -30,45 +28,50 @@ class TicketRoutedAgent(RoutedAgent):
         ctx: MessageContext
     ) -> None:
 
-
         print(
             "\n========== Ticket Routed Agent ==========\n"
         )
 
+        # -------------------------------------------------
+        # Convert message context dict -> IncidentContext
+        # -------------------------------------------------
 
-        updated_context = self.business_agent.process(
-            message.context
+        context = IncidentContext(
+            **message.context
         )
 
+        # -------------------------------------------------
+        # Process using business agent
+        # -------------------------------------------------
 
-        # Convert IncidentContext object to dict
-        if hasattr(updated_context, "model_dump"):
+        updated_context = self.business_agent.process(
+            context
+        )
 
-            updated_context = updated_context.model_dump()
+        # -------------------------------------------------
+        # Convert IncidentContext -> dict
+        # -------------------------------------------------
 
-
-        elif hasattr(updated_context, "__dict__"):
-
-            updated_context = updated_context.__dict__
-
-
-
-        message.context = updated_context
-
-
+        message.context = (
+            updated_context.model_dump()
+        )
 
         print(
             "Sending incident to Triaging Agent..."
         )
 
+        # -------------------------------------------------
+        # Send to next agent
+        # -------------------------------------------------
 
         await self.send_message(
 
-            message,
+            IncidentMessage(
+                context=message.context
+            ),
 
             AgentId(
                 "triaging",
                 "default"
             )
-
         )
